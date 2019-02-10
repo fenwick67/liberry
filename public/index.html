@@ -6,31 +6,123 @@
 </head>
 
 <body>
-    <div id='app'>
+    <div id="app">
+      <input type="text" placeholder="search" v-model=query></input>
+      <br>
+      Artists:
+      <ul>
+        <li v-for="artist in results.artists">
+          {{artist.name}}
+          <button @click="playSet(artist)">play</button>
+          <button @click="enqueueSet(artist)">enqueue</button>
+        </li>
+      </ul>
+      Albums:
+      <ul>
+        <li v-for="album in results.albums">
+          {{album.title}}
+          <button @click="playSet(album)">play</button>
+          <button @click="enqueueSet(album)">enqueue</button>
+        </li>
+      </ul>
+      Tracks:
+      <ul>
+        <li v-for="track in results.tracks">
+          {{track.title}} by {{track.artist}} on {{track.album}}
+          <button @click="playTrack(track)">play</button>
+          <button @click="enqueueTrack(track)">enqueue</button>
+        </li>
+      </ul>
+    </div>
+    <div id='webamp-app'>
         <!-- Webamp will attempt to center itself within this div -->
     </div>
     <script src="https://unpkg.com/webamp@1.2.0/built/webamp.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js" integrity="sha256-7/yoZS3548fXSRXqc/xYzjsmuW3sFKzuvOCHd06Pmps=" crossorigin="anonymous"></script>
     <script>
-        const Webamp = window.Webamp;
 
-        var tracks = window.fetch('/api/search?q=.')
-          .then(res=> res.json())
-          .then(tracks=>{
-            var tracks = tracks.map(t=>{
-              return {
-                  metaData: {
-                      artist: "???",
-                      title: "???"
-                  },
-                  url: t.url,
-                  duration: 666
-              }
-            })
-            new Webamp({
-                initialTracks: tracks
-            }).renderWhenReady(document.getElementById('app'));
-          })
-          .catch(e=>alert(e))
+
+        function transformToWebamp(tracklist){
+          return tracklist.map(t=>{
+            return {
+              url: t.url,
+              metaData: {
+                  artist: t.artist,
+                  title: t.title
+              },
+              duration: t.length
+            };
+          });
+        }
+
+        const app = new Vue({
+          el:"#app",
+          data:{
+            query:'',
+            results:{
+              albums:[],
+              tracks:[]
+            }
+          },
+          methods:{
+            playSet(a){
+              return this.playTracks(a.tracks);
+            },
+            enqueueSet(a){
+              return this.enqueueTracks(a.tracks);
+            },
+            playTrack(t){
+              return this.playTracks([t]);
+            },
+            enqueueTrack(t){
+              return this.enqueueTracks([t]);
+            },
+            playTracks(ts){
+              window.webamp.setTracksToPlay(transformToWebamp(ts));
+            },
+            enqueueTracks(ts){
+              window.webamp.appendTracks(transformToWebamp(ts));
+            }
+          },
+          watch:{
+            query:_.throttle(function(newQuery){
+              let q = newQuery || '.';
+
+              window.fetch('/api/search?q='+q+'&skip=0&limit=100000')
+                .then(res=> res.json())
+                .then(tracks=>{
+
+                  this.results.tracks = tracks;
+
+                  let albums = _.groupBy(tracks,'album');
+                  this.results.albums = Object.keys(albums).map(albumTitle=>{
+                    return {
+                      title:albumTitle,
+                      tracks:_.sortBy(albums[albumTitle],'trackNumber')
+                    }
+                  });
+
+                  let artists = _.groupBy(tracks,'artist');
+                  this.results.artists = Object.keys(artists).map(artistName=>{
+                    return {
+                      name:artistName,
+                      tracks:artists[artistName]
+                    }
+                  });
+
+                })
+                .catch(e=>alert(e))
+            },500)
+          }
+
+        })
+
+        const Webamp = window.Webamp;
+        window.webamp = new Webamp({
+            initialTracks: []
+        })
+        window.webamp.renderWhenReady(document.getElementById('webamp-app'));
 
     </script>
 </body>

@@ -19,6 +19,13 @@ let dieError = (er)=>{if(er){
 }}
 
 function startServer(settings){
+
+  if (!settings.sessionSecret && !settings.sessionsecret){
+    console.error('YOU NEED TO SET A SESSION SECRET')
+    console.error('use `--set sessionSecret=SOME_SECRETY_THING`')
+    process.exit(1);
+  }
+
   let origin = settings.origin || null;
   let app = express();
   let sessionStore = new SequelizeStore({
@@ -30,7 +37,7 @@ function startServer(settings){
   app.use(cookieParser());
   app.use(bodyParser.urlencoded({extended:false}));
   app.use(expressSession({
-    secret: settings.sessionSecret || settings.sessionsecret || 'please change this :(((',
+    secret: settings.sessionSecret || settings.sessionsecret,
     resave:false,
     saveUninitialized:true,
     store:sessionStore
@@ -91,7 +98,10 @@ function startServer(settings){
       return res.send('you forgot a query');
     }
 
-    db.trackSearch(stringQuery)
+    var limit = Number(req.query.limit) || 100;
+    var skip = Number(req.query.skip) || 0;
+
+    db.trackSearch(stringQuery,limit,skip)
     .then(tracks=>{
       res.status(200)
       if (!tracks.length){
@@ -105,7 +115,7 @@ function startServer(settings){
           t[key]=track[key]
         });
 
-        t.url = '/music/' + require('path').relative(settings.musicDir,track.filename);
+        t.url = '/music/' + require('path').relative(settings.musicDir,track.path);
         return t;
       })
 
