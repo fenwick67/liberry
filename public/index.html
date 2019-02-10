@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+</head>
+
+<body>
+    <div id='app'>
+        <!-- Webamp will attempt to center itself within this div -->
+    </div>
+    <script src="https://unpkg.com/webamp@1.2.0/built/webamp.bundle.min.js"></script>
+    <script>
+        const Webamp = window.Webamp;
+
+        var tracks = window.fetch('/api/search?q=.')
+          .then(res=> res.json())
+          .then(tracks=>{
+            var tracks = tracks.map(t=>{
+              return {
+                  metaData: {
+                      artist: "???",
+                      title: "???"
+                  },
+                  url: t.url,
+                  duration: 666
+              }
+            })
+            new Webamp({
+                initialTracks: tracks
+            }).renderWhenReady(document.getElementById('app'));
+          })
+          .catch(e=>alert(e))
+
+    </script>
+</body>
+
+</html>
