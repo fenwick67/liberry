@@ -40,6 +40,7 @@ function startServer(settings){
     secret: settings.sessionSecret || settings.sessionsecret,
     resave:false,
     saveUninitialized:true,
+    maxAge:1000*60*60*24*28,// 4 weeks
     store:sessionStore
   }));
 
@@ -110,7 +111,7 @@ function startServer(settings){
 
       let ts = tracks.map(track=>{
         let t = {}
-        let keys = ['artist','title','album','trackNumber','length'];
+        let keys = ['artist','title','album','trackNumber','length','id'];
         keys.forEach(key=>{
           t[key]=track[key]
         });
@@ -127,6 +128,23 @@ function startServer(settings){
       res.status(500)
       return res.send(e)
     })
+
+  })
+
+  app.get('/api/albumart/:trackId',function(req,res){
+    if (!req.params.trackId){
+      res.status(400);
+      return res.send('whoops, no track ID in URL')
+    }
+
+    db.getAlbumArt(req.params.trackId,(er,art)=>{
+      res.status(200);
+      if(art.format){
+        res.header("Content-Type", art.format);
+      }
+      res.send(art.data);
+    });
+
 
   })
 

@@ -6,6 +6,12 @@
 </head>
 
 <body>
+    <style>
+      .thumbnail{
+        width:100px;
+        height:100px;
+      }
+    </style>
     <div id="app">
       <input type="text" placeholder="search" v-model=query></input>
       <br>
@@ -20,6 +26,7 @@
       Albums:
       <ul>
         <li v-for="album in results.albums">
+          <img class="thumbnail" :src="'/api/albumart/'+album.tracks[0].id"></img>
           {{album.title}}
           <button @click="playSet(album)">play</button>
           <button @click="enqueueSet(album)">enqueue</button>
@@ -28,6 +35,7 @@
       Tracks:
       <ul>
         <li v-for="track in results.tracks">
+          <img class="thumbnail" :src="'/api/albumart/'+track.id"></img>
           {{track.title}} by {{track.artist}} on {{track.album}}
           <button @click="playTrack(track)">play</button>
           <button @click="enqueueTrack(track)">enqueue</button>
@@ -83,37 +91,53 @@
             },
             enqueueTracks(ts){
               window.webamp.appendTracks(transformToWebamp(ts));
-            }
-          },
-          watch:{
-            query:_.throttle(function(newQuery){
-              let q = newQuery || '.';
+            },
+            sendQuery(){
+              let q = this.query || '.';
 
               window.fetch('/api/search?q='+q+'&skip=0&limit=100000')
-                .then(res=> res.json())
-                .then(tracks=>{
+              .then(res=> res.json())
+              .then(tracks=>{
 
-                  this.results.tracks = tracks;
+                this.results.tracks = tracks;
 
-                  let albums = _.groupBy(tracks,'album');
-                  this.results.albums = Object.keys(albums).map(albumTitle=>{
+                let stringFilter = (q == '.')?'':q.toLowerCase();
+
+                let albums = _.groupBy(tracks,'album');
+                this.results.albums = Object.keys(albums)
+                  .filter(albumTitle=>{ // only albums which either match, OR, the first track's artist matches
+                    return albumTitle.toLowerCase().indexOf(stringFilter) > -1 ||
+                      (albums[albumTitle][0] && albums[albumTitle][0].artist &&  albums[albumTitle][0].artist.toLowerCase().indexOf(stringFilter) > -1 )
+                  })
+                  .map(albumTitle=>{
                     return {
                       title:albumTitle,
                       tracks:_.sortBy(albums[albumTitle],'trackNumber')
                     }
                   });
 
-                  let artists = _.groupBy(tracks,'artist');
-                  this.results.artists = Object.keys(artists).map(artistName=>{
+                let artists = _.groupBy(tracks,'artist');
+                this.results.artists = Object.keys(artists)
+                  .filter(artistName=>{
+                    return artistName.toLowerCase().indexOf(stringFilter) > -1
+                  })
+                  .map(artistName=>{
                     return {
                       name:artistName,
                       tracks:artists[artistName]
                     }
                   });
 
-                })
-                .catch(e=>alert(e))
-            },500)
+              })
+              .catch(e=>alert(e))
+
+            }
+          },
+          watch:{
+            query:_.throttle(function(){this.sendQuery()},500)
+          },
+          created:function(){
+            this.sendQuery();
           }
 
         })
