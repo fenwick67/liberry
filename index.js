@@ -138,6 +138,18 @@ function startServer(settings){
     }
 
     db.getAlbumArt(req.params.trackId,(er,art)=>{
+      if(er){
+        res.status(500);
+        res.send(er);
+        return;
+      }
+
+      if(!art){
+        res.status(404);
+        res.send();
+        return;
+      }
+
       res.status(200);
       if(art.format){
         res.header("Content-Type", art.format);
