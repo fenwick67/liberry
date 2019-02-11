@@ -35,7 +35,6 @@
       Tracks:
       <ul>
         <li v-for="track in results.tracks">
-          <img class="thumbnail" :src="'/api/albumart/'+track.id"></img>
           {{track.title}} by {{track.artist}} on {{track.album}}
           <button @click="playTrack(track)">play</button>
           <button @click="enqueueTrack(track)">enqueue</button>
