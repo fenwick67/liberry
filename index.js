@@ -111,7 +111,7 @@ function startServer(settings){
 
       let ts = tracks.map(track=>{
         let t = {}
-        let keys = ['artist','title','album','trackNumber','length','id'];
+        let keys = ['artist','title','album','trackNumber','length','id','disc'];
         keys.forEach(key=>{
           t[key]=track[key]
         });
@@ -140,6 +140,7 @@ function startServer(settings){
     db.getAlbumArt(req.params.trackId,(er,art)=>{
       if(er){
         res.status(500);
+        console.error(er);
         res.send(er);
         return;
       }

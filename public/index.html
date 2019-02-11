@@ -14,6 +14,7 @@
     </style>
     <div id="app">
       <input type="text" placeholder="search" v-model=query></input>
+      <button @click="sendQuery">search</button>
       <br>
       Artists:
       <ul>
@@ -26,7 +27,7 @@
       Albums:
       <ul>
         <li v-for="album in results.albums">
-          <img class="thumbnail" :src="'/api/albumart/'+album.tracks[0].id"></img>
+          <img class="thumbnail" :src="'/api/albumart/'+album.tracks[0].id" onerror="this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQI12NgYAAAAAMAASDVlMcAAAAASUVORK5CYII='"></img>
           {{album.title}}
           <button @click="playSet(album)">play</button>
           <button @click="enqueueSet(album)">enqueue</button>
@@ -111,7 +112,9 @@
                   .map(albumTitle=>{
                     return {
                       title:albumTitle,
-                      tracks:_.sortBy(albums[albumTitle],'trackNumber')
+                      tracks:_.sortBy(albums[albumTitle],function(t){
+                        return (t.disc||0)*100 + t.trackNumber;
+                      })
                     }
                   });
 
@@ -131,12 +134,6 @@
               .catch(e=>alert(e))
 
             }
-          },
-          watch:{
-            query:_.throttle(function(){this.sendQuery()},500)
-          },
-          created:function(){
-            this.sendQuery();
           }
 
         })
