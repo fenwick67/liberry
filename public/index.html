@@ -6,6 +6,11 @@
 </head>
 
 <body>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+    <script src="audioPlayer.js"></script>
+    <script src="mediaBar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js" integrity="sha256-7/yoZS3548fXSRXqc/xYzjsmuW3sFKzuvOCHd06Pmps=" crossorigin="anonymous"></script>
+
     <style>
       .thumbnail{
         width:100px;
@@ -13,6 +18,8 @@
       }
     </style>
     <div id="app">
+      <media-bar ref="player"></media-bar>
+      <br>
       <input type="text" placeholder="search" v-model=query></input>
       <button @click="sendQuery">search</button>
       <br>
@@ -27,7 +34,7 @@
       Albums:
       <ul>
         <li v-for="album in results.albums">
-          <img class="thumbnail" :src="'/api/albumart/'+album.tracks[0].id" onerror="this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQI12NgYAAAAAMAASDVlMcAAAAASUVORK5CYII='"></img>
+          <img class="thumbnail" :src="album.tracks[0].artUrl" onerror="this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQI12NgYAAAAAMAASDVlMcAAAAASUVORK5CYII='"></img>
           {{album.title}}
           <button @click="playSet(album)">play</button>
           <button @click="enqueueSet(album)">enqueue</button>
@@ -45,24 +52,7 @@
     <div id='webamp-app'>
         <!-- Webamp will attempt to center itself within this div -->
     </div>
-    <script src="https://unpkg.com/webamp@1.2.0/built/webamp.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js" integrity="sha256-7/yoZS3548fXSRXqc/xYzjsmuW3sFKzuvOCHd06Pmps=" crossorigin="anonymous"></script>
     <script>
-
-
-        function transformToWebamp(tracklist){
-          return tracklist.map(t=>{
-            return {
-              url: t.url,
-              metaData: {
-                  artist: t.artist,
-                  title: t.title
-              },
-              duration: t.length
-            };
-          });
-        }
 
         const app = new Vue({
           el:"#app",
@@ -87,15 +77,15 @@
               return this.enqueueTracks([t]);
             },
             playTracks(ts){
-              window.webamp.setTracksToPlay(transformToWebamp(ts));
+              this.$refs.player.setPlaylist(ts,true);
             },
             enqueueTracks(ts){
-              window.webamp.appendTracks(transformToWebamp(ts));
+              this.$refs.player.enqueue(ts);
             },
             sendQuery(){
               let q = this.query || '.';
 
-              window.fetch('/api/search?q='+q+'&skip=0&limit=100000')
+              window.fetch('/api/search?q='+q+'&skip=0&limit=100000',{credentials:'same-origin'})
               .then(res=> res.json())
               .then(tracks=>{
 
@@ -138,11 +128,6 @@
 
         })
 
-        const Webamp = window.Webamp;
-        window.webamp = new Webamp({
-            initialTracks: []
-        })
-        window.webamp.renderWhenReady(document.getElementById('webamp-app'));
 
     </script>
 </body>

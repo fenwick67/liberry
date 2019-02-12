@@ -116,6 +116,7 @@ function startServer(settings){
           t[key]=track[key]
         });
 
+        t.artUrl = '/api/albumArt/'+track.id;
         t.url = '/music/' + require('path').relative(settings.musicDir,track.path);
         return t;
       })
@@ -158,8 +159,56 @@ function startServer(settings){
       res.send(art.data);
     });
 
-
   })
+
+  app.get('/api/artists',function(req,res){
+    let limit = 100000;
+    let skip = 0;
+
+    if (req.query){
+      if(req.query.skip){
+        skip = Number(req.query.skip)||skip;
+      }
+      if(req.query.limit){
+        limit = Number(req.query.limit)||limit;
+      }
+    }
+
+    db.getArtists(limit,skip,(er,artists)=>{
+      if(er){
+        res.status(500);
+        return res.send(er);
+      }
+      res.status(200);
+      let a = artists.length?artists:[];
+      res.json(a);
+    })
+  })
+
+  app.get('/api/albums',function(req,res){
+    let limit = 100000;
+    let skip = 0;
+
+    if (req.query){
+      if(req.query.skip){
+        skip = Number(req.query.skip)||skip;
+      }
+      if(req.query.limit){
+        limit = Number(req.query.limit)||limit;
+      }
+    }
+
+    db.getAlbums(limit,skip,(er,albums)=>{
+      if(er){
+        res.status(500);
+        return res.send(er);
+      }
+      res.status(200);
+      let a = albums.length?albums:[];
+      res.json(a);
+    })
+  })
+
 
   app.post('/api/reindex',function(req,res){
     db.scanFilesystem(er=>{
