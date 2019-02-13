@@ -88,6 +88,19 @@ function startServer(settings){
   }));
 
   // API
+
+  let makeApiTrack = function(track){
+      let t = {}
+      let keys = ['artist','title','album','trackNumber','length','id','disc'];
+      keys.forEach(key=>{
+        t[key]=track[key]
+      });
+
+      t.artUrl = '/api/albumArt/'+track.id;
+      t.url = '/music/' + require('path').relative(settings.musicDir,track.path);
+      return t;
+  }
+
   app.get('/api/search',function(req,res){
     if (!req.query){
       res.status(400);
@@ -109,17 +122,7 @@ function startServer(settings){
         return res.json([]);
       }
 
-      let ts = tracks.map(track=>{
-        let t = {}
-        let keys = ['artist','title','album','trackNumber','length','id','disc'];
-        keys.forEach(key=>{
-          t[key]=track[key]
-        });
-
-        t.artUrl = '/api/albumArt/'+track.id;
-        t.url = '/music/' + require('path').relative(settings.musicDir,track.path);
-        return t;
-      })
+      let ts = tracks.map(makeApiTrack);
 
       return res.json(ts);
     })
@@ -182,6 +185,60 @@ function startServer(settings){
       res.status(200);
       let a = artists.length?artists:[];
       res.json(a);
+    })
+  })
+
+  let handleRandoms = function(req,res,type){
+    let count = 5;
+
+    if (req.query){
+      if(req.query.count){
+        count = Number(req.query.count)||count;
+      }
+    }
+
+    db.getRandom(type,count,(er,tracks)=>{
+      if(er){
+        res.status(500);
+        return res.send(er);
+      }
+      res.status(200);
+      let t = tracks.length?tracks:[];
+      res.json(t.map(makeApiTrack));
+    })
+  }
+
+  app.get('/api/randomAlbums',function(req,res){
+    handleRandoms(req,res,'album');
+  })
+
+  app.get('/api/randomTracks',function(req,res){
+    handleRandoms(req,res,'title');
+  })
+
+  app.get('/api/randomArtists',function(req,res){
+    handleRandoms(req,res,'artist');
+  })
+
+  app.get('/api/album',function(req,res){
+    if (!req.query || !req.query.title){
+      res.status(400);
+      return res.send('you forgot a ?title=')
+    }
+
+    db.getAlbum(req.query.title,(er,set)=>{
+      if(er){
+        console.error(er);
+        res.status(500);
+        return res.send(er);
+      }
+      if (!set || set.length < 1){
+        res.status(404);
+        return res.send();
+      }
+      console.log(set);
+      res.status(200);
+      return res.json(set.map(makeApiTrack));
     })
   })
 

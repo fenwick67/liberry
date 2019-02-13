@@ -2,7 +2,9 @@
 <html>
 
 <head>
+    <title>liberry</title>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body>
@@ -10,7 +12,6 @@
     <script src="audioPlayer.js"></script>
     <script src="mediaBar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js" integrity="sha256-7/yoZS3548fXSRXqc/xYzjsmuW3sFKzuvOCHd06Pmps=" crossorigin="anonymous"></script>
-
     <style>
       .thumbnail{
         width:100px;
@@ -19,8 +20,8 @@
     </style>
     <div id="app">
       <media-bar ref="player"></media-bar>
-      <br>
-      <input type="text" placeholder="search" v-model=query></input>
+      <hr>
+      <input type="text" placeholder="search" v-model=query @keyup.enter="sendQuery"></input>
       <button @click="sendQuery">search</button>
       <br>
       Artists:
@@ -32,12 +33,13 @@
         </li>
       </ul>
       Albums:
+      <button @click="getRandomAlbums()">random</button>
       <ul>
-        <li v-for="album in results.albums">
-          <img class="thumbnail" :src="album.tracks[0].artUrl" onerror="this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQI12NgYAAAAAMAASDVlMcAAAAASUVORK5CYII='"></img>
-          {{album.title}}
-          <button @click="playSet(album)">play</button>
-          <button @click="enqueueSet(album)">enqueue</button>
+        <li v-for="track in results.albums">
+          <img class="thumbnail" :src="track.artUrl" onerror="this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQI12NgYAAAAAMAASDVlMcAAAAASUVORK5CYII='"></img>
+          {{track.album}}
+          <button @click="playAlbumByTitle(track.album)">play</button>
+          <button @click="enqueueAlbumByTitle(track.album)">enqueue</button>
         </li>
       </ul>
       Tracks:
@@ -82,6 +84,21 @@
             enqueueTracks(ts){
               this.$refs.player.enqueue(ts);
             },
+            getRandomAlbums(){
+              window.fetch('/api/randomAlbums?count=5',{credentials:'same-origin'})
+              .then(res=>res.json())
+              .then(tracks=>{
+                this.results.albums = tracks.map(track=>{
+                    return {
+                      album:track.album,
+                      artist:track.artist,
+                      artUrl:track.artUrl,
+                      tracks:null
+                    }
+                  });
+
+              })
+            },
             sendQuery(){
               let q = this.query || '.';
 
@@ -101,7 +118,8 @@
                   })
                   .map(albumTitle=>{
                     return {
-                      title:albumTitle,
+                      artUrl:albums[albumTitle][0].artUrl,
+                      album:albumTitle,
                       tracks:_.sortBy(albums[albumTitle],function(t){
                         return (t.disc||0)*100 + t.trackNumber;
                       })
@@ -123,7 +141,28 @@
               })
               .catch(e=>alert(e))
 
+            },
+            playAlbumByTitle:function(title){
+              window.fetch('/api/album?title='+title,{credentials:'same-origin'})
+                .then(res=> res.json())
+                .then(tracks=>{
+                  let sorted = _.sortBy(tracks,t=>(t.disc||0)*100 + t.trackNumber);
+                  this.playTracks(sorted);
+                });
+            },
+            enqueueAlbumByTitle:function(title){
+              window.fetch('/api/album?title='+title,{credentials:'same-origin'})
+                .then(res=> res.json())
+                .then(tracks=>{
+                  this.playTracks(tracks);
+                });
             }
+
+          },
+          created:function(){
+
+            this.getRandomAlbums();
+
           }
 
         })

@@ -7,7 +7,8 @@ Vue.component('media-bar', {
                 playlistPosition:0,
                 loopAll:false,
                 loopOne:false,
-                shuffle:false
+                shuffle:false,
+                colors:[]
             }
         },
         template:`
@@ -121,5 +122,11 @@ Vue.component('media-bar', {
         },
         created(){
             //window.mediaBar = this;
+        },
+        watch:{
+          currentTrack:function(to,from){
+            document.title= to.title+' - liberry';
+            // TODO calculate new colors to match album art because it would be cool
+          }
         }
     } );
