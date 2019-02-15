@@ -23,7 +23,7 @@ Vue.component('audio-player',{
             :value="currentTime"
             :max="duration"
             min="0"
-            @click="setTime"
+            @click="handleSeekClick"
             style="min-width:150px;cursor:pointer;width:auto;margin-bottom:0;"
         />
         <button @click="togglePause" class="button is-rounded level-item is-primary">
@@ -58,7 +58,7 @@ Vue.component('audio-player',{
 
         },
         timify(t){
-            if(!t){
+            if(!t && t !== 0){
                 return '--:--';
             }
             var mins = Math.floor(t / 60);
@@ -81,9 +81,13 @@ Vue.component('audio-player',{
                 this.pause();
             }
         },
-        setTime(event){
+        handleSeekClick(event){
             var amnt = event.offsetX / event.target.clientWidth;
-            this.audioEl.currentTime = amnt * this.audioEl.duration;
+            this.seekTo(amnt * this.audioEl.duration);
+            this.syncSelf();
+        },
+        seekTo(timestamp){
+            this.audioEl.currentTime = timestamp;
             this.syncSelf();
         }
     },

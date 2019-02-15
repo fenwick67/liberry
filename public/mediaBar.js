@@ -13,35 +13,29 @@ Vue.component('media-bar', {
         },
         template:`
         <div class="media-bar" :class=" active?'active':'' ">
-            <div class="has-text-weight-bold has-text-centered">
-              <span v-if="currentTrack">{{currentTrack.artist || '--'}} - {{currentTrack.title || '--'}}</span>
-              <span v-else>---</span>
+          <album-card :album="currentTrack"/>
+          <audio-player class="level-item is-flex-wide" v-show="active" @ended="handleTrackEnd" ref="audio" autoplay="autoplay" :src="currentSrc"/>
+          <label>Loop<input type=checkbox v-model="loopAll"></input></label>
+          <label>Shuffle<input type=checkbox v-model="shuffle"></input></label>
+          <span>
+              <span v-if="playlist.length > 0">
+                  <span class="control">
+                      <button @click="seekBack">Previous</button>
+                  </span>
+                  <span class="control">
+                      <button @click="advancePlaylist( 1)" :disabled="!canAdvance">Next</button>
+                  </span>
+              </span>
+          </span>
+          <ul>
+            <div v-for="track,index in playlist">
+              <!-- now playing indicator -->
+              <button @click="setPlaylistPosition(index)">play</button>
+              <button @click="removeTrackAtIndex(index)">remove</button>
+              <b v-if="index == playlistPosition">{{ track.title }}</b>
+              <span v-else>{{ track.title }}</span>
             </div>
-            <div class="level">
-                <img class="thumbnail" v-if="currentTrack" :src="currentTrack.artUrl"></img>
-                <audio-player class="level-item is-flex-wide" v-show="active" @ended="handleTrackEnd" ref="audio" autoplay="autoplay" :src="currentSrc"/>
-                <label>Loop<input type=checkbox v-model="loopAll"></input></label>
-                <label>Shuffle<input type=checkbox v-model="shuffle"></input></label>
-                <span class="level-item" style="flex-shrink:none">
-                    <span class="field has-addons" v-if="playlist.length > 0">
-                        <span class="control">
-                            <button class="button is-small is-rounded" @click="advancePlaylist(-1)" :disabled="!canReverse">Previous</button>
-                        </span>
-                        <span class="control">
-                            <button class="button is-small is-rounded" @click="advancePlaylist( 1)" :disabled="!canAdvance">Next</button>
-                        </span>
-                    </span>
-                </span>
-            </div>
-            <ul>
-              <div v-for="track,index in playlist">
-                <!-- now playing indicator -->
-                <span v-if="index == playlistPosition">*</span><span v-else>&nbsp;</span>
-                <button @click="setPlaylistPosition(index)">play</button>
-                <button @click="removeTrackAtIndex(index)">remove</button>
-                {{ track.title }}
-              </div>
-            </ul>
+          </ul>
         </div>
         `,
         methods:{
@@ -92,6 +86,17 @@ Vue.component('media-bar', {
                 }
                 var entry = this.playlist[this.playlistPosition];
                 this.setMedia(entry);
+            },
+            seekBack(){
+              if (!this.$refs.audio){
+                return;
+              }
+              if (this.$refs.audio.currentTime > 3 || !this.canReverse){
+                this.$refs.audio.seekTo(0);
+              }else{
+                this.advancePlaylist(-1);
+              }
+
             },
             handleTrackEnd(){
               if(this.canAdvance){

@@ -5,19 +5,17 @@
     <title>liberry</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
     <script src="audioPlayer.js"></script>
     <script src="mediaBar.js"></script>
+    <script src="albumCover.js"></script>
+    <script src="albumCard.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js" integrity="sha256-7/yoZS3548fXSRXqc/xYzjsmuW3sFKzuvOCHd06Pmps=" crossorigin="anonymous"></script>
-    <style>
-      .thumbnail{
-        width:100px;
-        height:100px;
-      }
-    </style>
+
     <div id="app">
       <media-bar ref="player"></media-bar>
       <hr>
@@ -35,11 +33,11 @@
       Albums:
       <button @click="getRandomAlbums()">random</button>
       <ul>
-        <li v-for="track in results.albums">
-          <img class="thumbnail" :src="track.artUrl" onerror="this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQI12NgYAAAAAMAASDVlMcAAAAASUVORK5CYII='"></img>
-          {{track.album}}
-          <button @click="playAlbumByTitle(track.album)">play</button>
-          <button @click="enqueueAlbumByTitle(track.album)">enqueue</button>
+        <li v-for="album in results.albums">
+          <album-card :album="album">            
+            <button @click="playAlbumByTitle(album.album)">play</button>
+            <button @click="enqueueAlbumByTitle(album.album)">enqueue</button>
+          </album-card>
         </li>
       </ul>
       Tracks:
@@ -143,18 +141,17 @@
 
             },
             playAlbumByTitle:function(title){
-              window.fetch('/api/album?title='+title,{credentials:'same-origin'})
+              window.fetch('/api/album?title='+encodeURIComponent(title),{credentials:'same-origin'})
                 .then(res=> res.json())
-                .then(tracks=>{
-                  let sorted = _.sortBy(tracks,t=>(t.disc||0)*100 + t.trackNumber);
-                  this.playTracks(sorted);
+                .then(album=>{
+                  this.playTracks(album.tracks);
                 });
             },
             enqueueAlbumByTitle:function(title){
-              window.fetch('/api/album?title='+title,{credentials:'same-origin'})
+              window.fetch('/api/album?title='+encodeURIComponent(title),{credentials:'same-origin'})
                 .then(res=> res.json())
-                .then(tracks=>{
-                  this.playTracks(tracks);
+                .then(album=>{
+                  this.playTracks(album.tracks);
                 });
             }
 

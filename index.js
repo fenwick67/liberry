@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const expressSession = require("express-session");
 const passport = require('passport')
+const _ = require('lodash');
 
 const ecstatic = require('ecstatic');
 const express = require('express');
@@ -238,7 +239,13 @@ function startServer(settings){
       }
       console.log(set);
       res.status(200);
-      return res.json(set.map(makeApiTrack));
+      let track1 = makeApiTrack(set[0]);
+      return res.json({
+        title:track1.album,
+        artUrl:track1.artUrl,
+        artist:track1.artist,
+        tracks:_.sortBy(set.map(makeApiTrack),'disc','trackNumber')
+      });
     })
   })
 
