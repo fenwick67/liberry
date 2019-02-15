@@ -1,7 +1,7 @@
 Vue.component('album-card',{
     props:['album'],
     template:`
-        <div style="display:flex">
+        <div style="display:flex" v-if="album">
             <album-cover :src="album.artUrl"></album-cover>
             <div style="display:flex;flex-direction:column;justify-content:space-around;margin:0 1rem;">
                 <div v-if="album.title">{{album.title}}</div>
