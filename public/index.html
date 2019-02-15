@@ -10,10 +10,11 @@
 
 <body>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
-    <script src="audioPlayer.js"></script>
-    <script src="mediaBar.js"></script>
-    <script src="albumCover.js"></script>
-    <script src="albumCard.js"></script>
+    <script src="component/audioPlayer.js"></script>
+    <script src="component/mediaBar.js"></script>
+    <script src="component/albumCover.js"></script>
+    <script src="component/albumCard.js"></script>
+    <script src="component/audioVisualizer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js" integrity="sha256-7/yoZS3548fXSRXqc/xYzjsmuW3sFKzuvOCHd06Pmps=" crossorigin="anonymous"></script>
 
     <div id="app">
@@ -24,7 +25,7 @@
       <br>
       Artists:
       <ul>
-        <li v-for="artist in results.artists">
+        <li v-for="artist in results.artists" :key="artist.name">
           {{artist.name}}
           <button @click="playSet(artist)">play</button>
           <button @click="enqueueSet(artist)">enqueue</button>
@@ -33,8 +34,8 @@
       Albums:
       <button @click="getRandomAlbums()">random</button>
       <ul>
-        <li v-for="album in results.albums">
-          <album-card :album="album">            
+        <li v-for="album in results.albums" :key="album.album">
+          <album-card :album="album">
             <button @click="playAlbumByTitle(album.album)">play</button>
             <button @click="enqueueAlbumByTitle(album.album)">enqueue</button>
           </album-card>
@@ -42,7 +43,7 @@
       </ul>
       Tracks:
       <ul>
-        <li v-for="track in results.tracks">
+        <li v-for="track in results.tracks" :key="track.title">
           {{track.title}} by {{track.artist}} on {{track.album}}
           <button @click="playTrack(track)">play</button>
           <button @click="enqueueTrack(track)">enqueue</button>

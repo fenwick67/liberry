@@ -8,6 +8,7 @@ Vue.component('media-bar', {
                 loopAll:false,
                 loopOne:false,
                 shuffle:false,
+                showVisualizer:false,
                 colors:[]
             }
         },
@@ -17,6 +18,8 @@ Vue.component('media-bar', {
           <audio-player class="level-item is-flex-wide" v-show="active" @ended="handleTrackEnd" ref="audio" autoplay="autoplay" :src="currentSrc"/>
           <label>Loop<input type=checkbox v-model="loopAll"></input></label>
           <label>Shuffle<input type=checkbox v-model="shuffle"></input></label>
+          <!-- <label>Visualizer<input type=checkbox v-model="showVisualizer"></input></label> --> 
+          <audio-visualizer v-if="showVisualizer && this.$refs.audio && this.$refs.audio.audioEl" :audio="this.$refs.audio.audioEl"/>
           <span>
               <span v-if="playlist.length > 0">
                   <span class="control">
