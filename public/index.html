@@ -118,6 +118,7 @@
                     return {
                       artUrl:albums[albumTitle][0].artUrl,
                       album:albumTitle,
+                      artist:albums[albumTitle][0].artist,
                       tracks:_.sortBy(albums[albumTitle],function(t){
                         return (t.disc||0)*100 + t.trackNumber;
                       })
