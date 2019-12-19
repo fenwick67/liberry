@@ -70,7 +70,7 @@ function startServer(settings){
     if(!req.user){
       res.redirect('/login');
     }else{
-      ecstatic({root:'./public'})(req,res,next);
+      res.redirect('/index.html');
     }
   })
 

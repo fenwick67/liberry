@@ -9,12 +9,13 @@ Vue.component('media-bar', {
                 loopOne:false,
                 shuffle:false,
                 showVisualizer:false,
-                colors:[]
+                color:'#fff',
+                palette:['#000','#000','#000','#000','#000','#000','#000','#000','#000']
             }
         },
         template:`
-        <div class="media-bar" :class=" active?'active':'' ">
-          <album-card :album="currentTrack"/>
+        <div class="media-bar" :class=" active?'active':'' " :style="{background:color, color:palette[0]}">
+          <album-card :useColor="true" :album="currentTrack" @albumchanged="albumArtChanged"/>
           <audio-player class="level-item is-flex-wide" v-show="active" @ended="handleTrackEnd" ref="audio" autoplay="autoplay" :src="currentSrc"/>
           <label>Loop<input type=checkbox v-model="loopAll"></input></label>
           <label>Shuffle<input type=checkbox v-model="shuffle"></input></label>
@@ -32,7 +33,6 @@ Vue.component('media-bar', {
           </span>
           <ul>
             <div v-for="track,index in playlist">
-              <!-- now playing indicator -->
               <button @click="setPlaylistPosition(index)">play</button>
               <button @click="removeTrackAtIndex(index)">remove</button>
               <b v-if="index == playlistPosition">{{ track.title }}</b>
@@ -104,6 +104,16 @@ Vue.component('media-bar', {
             handleTrackEnd(){
               if(this.canAdvance){
                 this.advancePlaylist(1);
+              }
+            },
+            albumArtChanged(data){
+              console.log(data)
+              this.color = data.color;
+              this.palette = data.palette;
+              // honestly just set css globally at this point
+              document.documentElement.style.setProperty('--album-color', this.color);
+              for (var i = 0; i < 4; i++){
+                document.documentElement.style.setProperty('--album-palette-'+i, this.palette[i]);
               }
             }
         },

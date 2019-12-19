@@ -9,6 +9,7 @@
 </head>
 
 <body>
+    <script src="color-thief.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
     <script src="component/audioPlayer.js"></script>
     <script src="component/mediaBar.js"></script>
@@ -43,7 +44,7 @@
       </ul>
       Tracks:
       <ul>
-        <li v-for="track in results.tracks" :key="track.title">
+        <li v-for="track in results.tracks" :key="track.id">
           {{track.title}} by {{track.artist}} on {{track.album}}
           <button @click="playTrack(track)">play</button>
           <button @click="enqueueTrack(track)">enqueue</button>

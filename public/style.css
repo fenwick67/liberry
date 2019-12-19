@@ -48,9 +48,17 @@ table {
 }
 
 /*---------------- actual styles ---------------*/
-
+:root{
+	--album-color:white;
+	--album-palette-0:black;
+	--album-palette-1:black;
+	--album-palette-2:black;
+	--album-palette-3:black;
+}
 
 body{
-    margin:1rem;
-    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+	margin:1rem;
+	font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+	background:var(--album-color);
+	color:var(--album-palette-0);
 }
