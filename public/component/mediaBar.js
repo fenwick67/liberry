@@ -107,7 +107,6 @@ Vue.component('media-bar', {
               }
             },
             albumArtChanged(data){
-              console.log(data)
               this.color = data.color;
               this.palette = data.palette;
               // honestly just set css globally at this point
