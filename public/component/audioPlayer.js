@@ -29,6 +29,7 @@ Vue.component('audio-player',{
         <button @click="togglePause" class="button is-rounded level-item is-primary">
             {{ paused?"Play":"Pause" }}
         </button>
+        <input type="range" min="0" max="1" step="0.01" v-model="volume"/>
     </div>
     `,
     methods:{
